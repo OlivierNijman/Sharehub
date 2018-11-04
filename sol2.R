@@ -1,6 +1,7 @@
 setwd("C:/Users/oli4n/University/Num Methods/Week 2")
 
 library(dplyr)
+library(ggplot2)
 rm(list = ls())
 
 
@@ -148,6 +149,109 @@ nine_a <- function(x) {
 }
 
 nine_b <- function(x) {
-  
+  y1 <- log(x) - exp(-x)
+  y2 <- 1/x + exp(-x)
+  y3 <- -1/(x^2) - exp(-x)
+  y <- c(y1, y2, y3)
+  return(y)
 }
 
+nine_c <- function(x) {
+  y1 <- x^3 - x - 3
+  y2 <- 3*x^2 -1
+  y3 <- 6*x
+  y <- c(y1, y2, y3)
+  return(y)
+}
+
+nine_d <- function(x) {
+  y1 <- x^3 -7*x^2 + 14*x - 8
+  y2 <- 3*x^2 -14*x + 14
+  y3 <- 6*x -14
+  y <- c(y1, y2, y3)
+  return(y)
+}
+
+nine_e <- function(x) {
+  y1 <- log(x)*exp(-x)
+  y2 <- exp(-x)/x - log(x)*exp(-x)
+  y3 <- log(x)*exp(-x) - exp(-x)*(2/x + 1/x^2);
+  y = c(y1,y2, y3)
+  return(y)
+}
+
+newtonraphsonquadratic <- function(ftn, x0, tol = 1e-9, max.iter = 100) {
+  x <- x0
+  fx <- ftn(x)
+  iter <- 0
+  
+  while (abs(fx[1]) > tol && iter < max.iter) {
+    a <- fx[3]/2
+    b <- fx[2] - x*fx[3]
+    c <- fx[1] - x*fx[2] + ((x^2)*fx[3])/2
+    discr <- b^2 - 4*a*c
+    cat("the discriminant is equal to", discr, "\n")
+    if (a==0) {
+      x <- -c/b
+    } else {
+      if (discr > 0) {
+        x1 <- (-b + sqrt(discr))/(2*a)
+        x2 <- (-b - sqrt(discr))/(2*a)
+        d1 <- abs(x - x1)
+        d2 <- abs(x - x2)
+        if (d1 < d2) {
+          x <- x1
+        } else {
+          x <- x2
+        }
+      } else if (discr == 0) {
+        x <- -b/(2*a)
+      } else {
+        x <- x - fx[2]/fx[3]
+      }
+    }
+    fx <- ftn(x)
+    iter <- iter +1
+    cat("At iteration", iter, "x is ", x , "\n")
+  }
+  if (abs(fx[1])>tol) {
+    cat("convergence failed\n")
+    return(NULL)
+  } else {
+    cat("algorithm converged at iter", iter, "with x value of", x, "\n")
+    return(x)
+  }
+}
+
+newtonraphsonquadratic(nine_a, 1)
+newtonraphsonquadratic(nine_b, 2)
+newtonraphsonquadratic(nine_c, 0)
+newtonraphsonquadratic(nine_d, 1.5)
+newtonraphsonquadratic(nine_e, 2)
+
+
+################# Problem 4
+S <- 100
+K <- 105
+t <- 20
+r <- 0.01/365
+
+Blackscholes <- function(S = 100, K = 105, r = 0.01/365, t = 20,  sigma) {
+  d1 <- (log(S/K) + (r + 0.5*sigma^2)*t)/(sigma*sqrt(t))
+  d2 <- d1 - sigma*sqrt(t)
+  S*pnorm(d1) - K*exp(-r*t)*pnorm(d2)
+}
+
+sigma_vector <- seq(from = 0, to = 0.3, by = 0.001)
+Blackscholes_values <- Blackscholes(sigma = sigma_vector)
+
+df <- data.frame(sigma = sigma_vector, BS  = Blackscholes_values)
+ggplot(df, aes(sigma, BS)) + geom_line()
+
+sigmaftn <- function(sigma) {
+  Blackscholes(sigma = sigma) - 1.70
+}
+
+impliedsigma <- secantmethod(0.05, 0.1, sigmaftn)
+
+Blackscholes(sigma = impliedsigma)
