@@ -9,16 +9,17 @@ library(cowplot)
 ############################## a
 polvec <- c()
 
-polyn <- function(x = 1, a = c(-3, 0, 6), m = 2) {
-  if (length(a) != m+1){
-    stop("non compatible length of order and coefficients")
+
+polyn <- function() {
+  cat("please only input numbers in the following prompts \n the polynomial will be of the form a1 + a2x + a3x^2... etc.")
+  m <- as.numeric(readline(prompt = "the degree of the polynomial: "))
+  a <- c()
+  for (i in 1:(m+1)) {
+    a[i] <- as.numeric(readline(prompt = paste("the ", i, "coefficient of the polynomial: ")))
   }
-  m <- seq(from = 0, to = m, by = 1)
-  for (i in 1:length(a)) {
-    c <- a[i]*x^m[i]
-    polvec <- c(polvec, c)
-  }
-  return(polvec)
+  poly <- polynomial(coef = a)
+  cat("The polynomial: ")
+  return(poly)
 }
 
 polynsum_ordi <- function(x = 1, a = c(-3, 0, 6), m = 2) {
@@ -33,21 +34,19 @@ polynsum_ordi <- function(x = 1, a = c(-3, 0, 6), m = 2) {
   return(sum(polvec))
 }
 
-poldf <- data.frame()
 
-polyn2 <- function(a, m) {
+polynsum <- function(x , a , m) {
+  polvec <- polylist()
   if (length(a) != m+1){
     stop("non compatible length of order and coefficients")
   }
   m <- seq(from = 0, to = m, by = 1)
-  poldf <- data.frame(rbind(m, a), row.names = c("x_power", "coeff"))
-  return(poldf)
+  for (i in 1:length(a)) {
+    polvec[[i]] <- a[i]*(x^m[i])
+  }
+  return(sum(polvec))
 }
 
-polyn(2, c(-3, 0, 6), m = 2)
-polynsum_ordi(2, c(-3, 0, 6), m = 2)
-polyn2(c(-3, 0, 6), m = 2)
-polynomial(coef = c(-3,0,6))
 
 ############################## b
 
@@ -65,31 +64,7 @@ primitive(c(-3,0,6))
 
 ############## c
 
-polynsum <- function(x , a , m) {
-  polvec <- polylist()
-  if (length(a) != m+1){
-    stop("non compatible length of order and coefficients")
-  }
-  m <- seq(from = 0, to = m, by = 1)
-  for (i in 1:length(a)) {
-    polvec[[i]] <- a[i]*(x^m[i])
-  }
-  return(sum(polvec))
-}
 
-picard1 <- function(a, x0) {
-  inval <- c()
-  # for (i in 1:length(a)+1) {
-  #   if (i ==1) {
-  #     inval[i]  <- x0
-  #   } else {
-  #     inval[i] <- 0
-  #   }
-  # }
-  iter <- primitive(polynsum_ordi(x = x0, a = a, m = length(a)-1))
-  iter[1] <- iter[1] + x0
-  return(iter)
-}
 
 picarditeration <- function(a, xk, x0) {
   xold <- as.polynomial(xk)
@@ -100,7 +75,7 @@ picarditeration <- function(a, xk, x0) {
 
 
 
-picard1(a = c(-3,0,6), x0 = -1)
+
 picarditeration(a = c(-3, 0, 6), xk = -1, x0 = -1)
 picarditeration(a = c(-3, 0, 6), xk = c(-1, 3), x0 = -1)
 
@@ -110,7 +85,16 @@ polynsum(x = as.polynomial(-1), a = c(-3, 0, 6), m = 2)
 ############################## d
 
 
-picardmethod <- function(a, x0, max.iter) {
+picardmethod_input <- function() {
+  cat("please only input numbers in the following prompts \n the polynomial will be of the form a1 + a2x + a3x^2... etc.\n")
+  m <- as.numeric(readline(prompt = "the degree of the polynomial: "))
+  a <- c()
+  for (i in 1:(m+1)) {
+    a[i] <- as.numeric(readline(prompt = paste("the ", i, "coefficient of the polynomial: ")))
+  }
+  x0 <- as.numeric(readline(prompt = "the initial value: "))
+  max.iter <- as.numeric(readline(prompt = "the number of iterations: "))
+  
   xnew <- polynomial(x0)
   iter <- 0
   while (iter < max.iter) {
@@ -124,10 +108,23 @@ picardmethod <- function(a, x0, max.iter) {
   return(xnew)
 }
 
-picardmethod(a = c(-3, 0, 6), x0 = -1, max.iter = 5)
 
 
 ############################## e
+picardmethod <- function(a, x0, max.iter) {
+  xnew <- polynomial(x0)
+  iter <- 0
+  while (iter < max.iter) {
+    xold <- xnew
+    xnew <- primitive(polynsum(x = xold, a, m = length(a) - 1))
+    xnew[1] <- xnew[1] + x0
+    iter <- iter + 1
+    #    cat("at iteration", iter, "the approximate polynomial solution coefficents are", xnew, "\n")
+  }
+  cat("iterations:", iter, "\n")
+  return(xnew)
+}
+
 
 p3 <- picardmethod(a = c(0,2,-1), x0 = 1, max.iter = 3);p3
 p4 <- picardmethod(a = c(0,2,-1), x0 = 1, max.iter = 4);p4
